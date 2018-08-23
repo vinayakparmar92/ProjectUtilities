@@ -1,0 +1,6 @@
+use_frameworks!
+target 'ProjectUtilities_Tests' do
+  pod 'ProjectUtilities', :path => '../'
+  
+  
+end
