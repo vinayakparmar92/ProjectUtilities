@@ -1,0 +1,6 @@
+framework module ProjectUtilities {
+  umbrella header "ProjectUtilities-umbrella.h"
+
+  export *
+  module * { export * }
+}

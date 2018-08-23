@@ -1,0 +1,22 @@
+{
+  "name": "ProjectUtilities",
+  "version": "0.1.0",
+  "summary": "A short description of ProjectUtilities.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/vinayakparmar92/ProjectUtilities",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "vinayakparmar92": "vinayakparmar1992@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/vinayakparmar92/ProjectUtilities.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "ProjectUtilities/Classes/**/*"
+}

@@ -1,0 +1,16 @@
+PODS:
+  - ProjectUtilities (0.1.0)
+
+DEPENDENCIES:
+  - ProjectUtilities (from `../`)
+
+EXTERNAL SOURCES:
+  ProjectUtilities:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  ProjectUtilities: f8a68b0783381b532f3b0f76841c6aa25c190ba6
+
+PODFILE CHECKSUM: 97ecbc545dd48ec4f6647add3cd793fc070f5a02
+
+COCOAPODS: 1.5.2
