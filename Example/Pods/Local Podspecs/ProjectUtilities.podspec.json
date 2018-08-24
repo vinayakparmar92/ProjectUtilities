@@ -1,8 +1,8 @@
 {
   "name": "ProjectUtilities",
   "version": "0.1.0",
-  "summary": "A short description of ProjectUtilities.",
-  "description": "TODO: Add long description of the pod here.",
+  "summary": "Every new project iOS project needs few code snippets and libraries to get started with. This project has got almost everything for that.",
+  "description": "'The projects has got alot of helper methods and Extensions. It also has wrappers to make network calls. No need to big network library like Alamofire if you just need basic REST calls'",
   "homepage": "https://github.com/vinayakparmar92/ProjectUtilities",
   "license": {
     "type": "MIT",
@@ -15,6 +15,7 @@
     "git": "https://github.com/vinayakparmar92/ProjectUtilities.git",
     "tag": "0.1.0"
   },
+  "social_media_url": "https://twitter.com/vinayakparmar92",
   "platforms": {
     "ios": "8.0"
   },
