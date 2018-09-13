@@ -14,7 +14,6 @@ import Foundation
     let headers : [String : String]
     let requestParameters: [String : Any?]?
     let requestBody: Data?
-    let parse: (Data?) -> Any?
 }
 
  enum Reason {
@@ -24,12 +23,22 @@ import Foundation
     case other(Error?)
 }
 
+enum ServiceError {
+    case internalError
+    case dataParsingError
+    case unknownError
+}
+
+enum ServiceResponse<T> {
+    case success(T)
+    case failure(ServiceError)
+}
+
 // MARK: Method to call API
-@discardableResult  func apiRequest(_ modifyRequest: ((inout URLRequest) -> ())?,
+@discardableResult  func apiRequest<T: Codable>(_ modifyRequest: ((inout URLRequest) -> ())?,
                                           baseURLString: String,
                                           resource: APIResource,
-                                          failure: ((Reason, Any?) -> ())?,
-                                          success: ((Any) -> ())?) -> URLSessionTask? {
+                                          responseHandler: @escaping ((ServiceResponse<T>) -> ())) -> URLSessionTask? {
     var component = URLComponents.init(string: baseURLString)
     
     if let _ = component {
@@ -62,38 +71,35 @@ import Foundation
             }
             
             #if !ENV_PRODUCTION
-                print("\n##*****************************************************")
-                if let strURL = request.url?.absoluteString {
-                    print("URL STRING :\n \(strURL)")
-                }
-                if let getParams = request.url?.queryParams,
-                    !getParams.isEmpty {
-                    print("GET PARAMS :\n \(getParams)")
-                }
-                if let body = request.httpBody?.getString() {
-                    print("POST BODY :\n \(body)")
-                }
-                print("******************************************************##\n")
+            print("\n##*****************************************************")
+            if let strURL = request.url?.absoluteString {
+                print("URL STRING :\n \(strURL)")
+            }
+            if let getParams = request.url?.queryParams,
+                !getParams.isEmpty {
+                print("GET PARAMS :\n \(getParams)")
+            }
+            if let body = request.httpBody?.getString() {
+                print("POST BODY :\n \(body)")
+            }
+            print("******************************************************##\n")
             #endif
             
             let session = URLSession.shared
             let task = session.dataTask(with: request) { (data, response, error) -> Void in
                 
-                if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 200 {
-                        
-                        if let result = resource.parse(data) {
-                            success?(result)
-                            
-                        } else {
-                            failure?(Reason.parsingFailed, data)
-                        }
-                    } else {
-                        // TODO: Add crashlytics crash here
-                        failure?(Reason.noSuccessStatusCode, resource.parse(data))
+                if let httpResponse = response as? HTTPURLResponse,
+                    httpResponse.statusCode == 200,
+                    let responseData = data {
+                    do {
+                        let parsedResponse = try JSONDecoder().decode(T.self,
+                                                                      from: responseData)
+                        responseHandler(ServiceResponse.success(parsedResponse))
+                    } catch {
+                        responseHandler(ServiceResponse.failure(ServiceError.dataParsingError))
                     }
-                } else {                    
-                    failure?(Reason.other(error), data)
+                } else {
+                    responseHandler(ServiceResponse.failure(ServiceError.unknownError))
                 }
             }
             
@@ -102,7 +108,7 @@ import Foundation
         }
     }
     
-    failure?(Reason.badRequest, nil)
+    responseHandler(ServiceResponse.failure(ServiceError.unknownError))
     return nil
 }
 
@@ -121,8 +127,7 @@ func encodeJSON(_ dict: [String: Any?]) -> Data? {
     return dictWithoutOptionals.count > 0 ? try? JSONSerialization.data(withJSONObject: dictWithoutOptionals, options: .prettyPrinted) : nil
 }
 
-extension Dictionary {
-    
+extension Dictionary {    
     func getQueryString() -> String {
         var outputString = "?"
         
@@ -133,5 +138,3 @@ extension Dictionary {
         return outputString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
     }
 }
-
-

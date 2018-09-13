@@ -3,6 +3,7 @@ import UIKit
 // MARK: Type Alias
 typealias OnCompletionHandler = ((Bool) -> ())
 typealias JSONDictionary = [String : Any]
+typealias JSONDictionaryWithOptionalValues = [String : Any?]
 
 // MARK: Constants
 let kScreenWidth = UIScreen.main.bounds.width
@@ -10,6 +11,8 @@ let kScreenHeight = UIScreen.main.bounds.height
 let kStatusBarHeight = UIApplication.shared.statusBarFrame.size.height
 let kAnimationTime = 0.35
 let kSomethingWrongError = "Something went wrong! Please try again later."
+let kOops = "Oops!"
+let kSuccess = "Success!"
 
 // MARK: Native class extensions
 extension UITableView {
@@ -444,13 +447,12 @@ extension UIView {
                     radius: CGFloat = 2,
                     scale: Bool = true,
                     cornerRadius: CGFloat = 0) {
+        
         layer.masksToBounds = false
         layer.shadowColor = color.cgColor
         layer.shadowOpacity = opacity
         layer.shadowOffset = offSet
         layer.shadowRadius = radius
-        //        layer.shadowPath = UIBezierPath(roundedRect: bounds,
-        //                                        cornerRadius: cornerRadius).cgPath
     }
     
     func roundCorners(_ corners: UIRectCorner, radius: CGFloat) {
@@ -674,6 +676,29 @@ extension UIViewController {
         return view.frame.size.height
     }
     
+    func showDismissButtonIfPresentedModally(color: UIColor = UIColor.black,
+                                             title: String = "X") {
+        // Configure navbar buttons
+        let btnLeft = UIButton(type: .system)
+        btnLeft.setTitle(title, for: .normal)
+        btnLeft.setTitleColor(color, for: .normal)
+        btnLeft.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        btnLeft.sizeToFit()
+        btnLeft.addTarget(self,
+                          action: #selector(self.didTapDismiss),
+                          for: .touchUpInside)
+        let leftBarBtnItem = UIBarButtonItem(customView: btnLeft)
+        self.navigationItem.setLeftBarButton(leftBarBtnItem, animated: false)
+    }
+    
+    @objc private func didTapDismiss() {
+        DispatchQueue.main.async { [weak self] in
+            if let weakSelf = self {
+                weakSelf.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+
     func isPresentedModally() -> Bool {
         if self.presentingViewController != nil {
             return true
@@ -684,6 +709,62 @@ extension UIViewController {
         }
         
         return false
+    }
+    
+    func showErrorWith(title : String? = nil, message : String?) {
+        DispatchQueue.main.async { [weak self] in
+
+            let errorAlert = UIAlertController.init(title: title ?? kOops,
+                                                    message: message ?? kSomethingWrongError,
+                                                    preferredStyle: .alert)
+            errorAlert.addAction(UIAlertAction.init(title: "Ok", style: .cancel, handler: nil))
+
+            if let weakSelf = self {
+                weakSelf.present(errorAlert,
+                                 animated: true,
+                                 completion: nil)
+            }
+        }
+    }
+    
+    func showSuccessAlertWith(title : String? = nil,
+                              message : String) {
+        DispatchQueue.main.async {[weak self] in
+            let errorAlert = UIAlertController.init(title: title ?? kSuccess,
+                                                    message: message,
+                                                    preferredStyle: .alert)
+            errorAlert.addAction(UIAlertAction.init(title: "Ok", style: .cancel, handler: nil))
+            
+            if let weakSelf = self {
+                weakSelf.present(errorAlert,
+                                 animated: true,
+                                 completion: nil)
+            }
+        }
+    }    
+}
+
+class Dynamic<T> {
+    typealias Listener = (T) -> ()
+    var listener: Listener?
+    
+    func bind(_ listener: Listener?) {
+        self.listener = listener
+    }
+    
+    func bindAndFire(_ listener: Listener?) {
+        self.listener = listener
+        listener?(value)
+    }
+    
+    var value: T {
+        didSet {
+            listener?(value)
+        }
+    }
+    
+    init(_ v: T) {
+        value = v
     }
 }
 
@@ -1093,32 +1174,6 @@ class CommonUtilities: NSObject {
         view.layer.add(animation, forKey: "shake")
     }
     
-    class func showErrorWith(title : String?, message : String?) {
-        DispatchQueue.main.async {
-            let errorAlert = UIAlertController.init(title: title,
-                                                    message: message ?? kSomethingWrongError,
-                                                    preferredStyle: .alert)
-            errorAlert.addAction(UIAlertAction.init(title: "Ok", style: .cancel, handler: nil))
-            
-            topViewController()?.present(errorAlert,
-                                         animated: true,
-                                         completion: nil)
-        }
-    }
-    
-    class func showSuccessAlertWith(title : String?, message : String?) {
-        DispatchQueue.main.async {
-            let errorAlert = UIAlertController.init(title: title,
-                                                    message: message ?? kSomethingWrongError,
-                                                    preferredStyle: .alert)
-            errorAlert.addAction(UIAlertAction.init(title: "Ok", style: .cancel, handler: nil))
-            
-            topViewController()?.present(errorAlert,
-                                         animated: true,
-                                         completion: nil)
-        }
-    }
-    
     class func topViewController() -> UIViewController? {
         var top = UIApplication.shared.keyWindow?.rootViewController
         while true {
@@ -1266,4 +1321,23 @@ class CommonUtilities: NSObject {
         }
         return false
     }
-}
+    
+    class func isValid(strEmail: String?) -> Bool {
+        guard let strEmail = strEmail else { return false}
+        
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        return emailTest.evaluate(with: strEmail)
+    }
+    
+    class func isValid(strNumber: String?) -> Bool {
+        guard let strNumber = strNumber else {
+            return false
+        }
+        let PHONE_REGEX = "^\\d{3}-\\d{3}-\\d{4}$"
+        let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
+        let result =  phoneTest.evaluate(with: strNumber)
+        return result
+    }    
+ }
