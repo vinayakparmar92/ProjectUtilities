@@ -1339,5 +1339,15 @@ class CommonUtilities: NSObject {
         let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
         let result =  phoneTest.evaluate(with: strNumber)
         return result
-    }    
+    }
+    
+    class func isValid(password: String?) -> Bool {
+        guard let strPassword = password else {
+            return false
+        }
+        let pwdRegex = "^(?=.*[a-z])(?=.*[$@$#!%{}*?&])[A-Za-z\\d$@$#!%*?&]{6,}"
+        let pwdTest = NSPredicate(format: "SELF MATCHES %@", pwdRegex)
+        let result =  pwdTest.evaluate(with: strPassword)
+        return result
+    }
  }
