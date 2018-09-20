@@ -88,6 +88,13 @@ enum ServiceResponse<T> {
             let session = URLSession.shared
             let task = session.dataTask(with: request) { (data, response, error) -> Void in
                 
+                do {
+                    let temp =  try JSONSerialization.jsonObject(with: data!,
+                                                                 options: JSONSerialization.ReadingOptions.allowFragments)
+                } catch {
+                    print(error)
+                }
+                
                 if let httpResponse = response as? HTTPURLResponse,
                     httpResponse.statusCode == 200,
                     let responseData = data {

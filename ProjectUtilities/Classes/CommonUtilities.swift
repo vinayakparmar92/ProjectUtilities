@@ -1219,7 +1219,8 @@ class CommonUtilities: NSObject {
         guard range.lowerBound <= str.count && range.upperBound <= str.count else {
             return nil
         }
-        return Range<String.Index>(str.index(str.startIndex, offsetBy: range.lowerBound)..<str.index(str.startIndex, offsetBy: range.upperBound))
+        return (str.index(str.startIndex,
+                          offsetBy: range.lowerBound)..<str.index(str.startIndex,offsetBy: range.upperBound))
     }
     
     class func fixOrientation(img: UIImage?) -> UIImage? {
